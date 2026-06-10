@@ -6,8 +6,16 @@ interface UserState {
     id: string;
     name: string;
     email: string;
+    organizationId: string;
+    role: string;
+  } | null;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
   } | null;
   setUser: (user: UserState['user']) => void;
+  setOrganization: (org: UserState['organization']) => void;
   logout: () => void;
 }
 
@@ -15,8 +23,15 @@ export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       user: null,
+      organization: null,
       setUser: (user) => set({ user }),
-      logout: () => set({ user: null }),
+      setOrganization: (organization) => set({ organization }),
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-token');
+        }
+        set({ user: null, organization: null });
+      },
     }),
     {
       name: 'user-storage',
