@@ -1,18 +1,24 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import * as aiService from '../services/ai.service';
-import { getAIResponse } from '../services/openai.service';
 
 export const askAI = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { content, conversationId } = req.body;
-    
-    // Use the improved AI service with tools
-    const aiResponse = await getAIResponse(req.user!.id, req.user!.organizationId, [{ role: 'user', content }]);
-    
-    // Save to database logic could still live in aiService.askAI or here
-    // For now, let's just return the response
-    res.json(aiResponse);
+
+    if (!content) {
+      return res.status(400).json({ message: 'Content is required' });
+    }
+
+    // Use the AI service with database storage + OpenAI function calling
+    const result = await aiService.askAI(
+      req.user!.id,
+      req.user!.organizationId,
+      content,
+      conversationId
+    );
+
+    res.json(result);
   } catch (error) {
     next(error);
   }

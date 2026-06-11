@@ -1,11 +1,7 @@
 import prisma from '../config/prisma';
-import OpenAI from 'openai';
+import { getAIResponse } from './openai.service';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export const askAI = async (userId: string, content: string, conversationId?: string) => {
+export const askAI = async (userId: string, organizationId: string, content: string, conversationId?: string) => {
   let conversation;
   
   if (conversationId) {
@@ -34,9 +30,23 @@ export const askAI = async (userId: string, content: string, conversationId?: st
     },
   });
 
-  // Call OpenAI (simplified)
-  // const completion = await openai.chat.completions.create({ ... });
-  const aiResponse = "This is a placeholder AI response for: " + content;
+  // Get conversation history for context
+  const messages = conversation.messages.map(m => ({
+    role: m.role as 'user' | 'assistant',
+    content: m.content,
+  })) as any[];
+
+  messages.push({ role: 'user', content });
+
+  // Call OpenAI via the dedicated service with function calling
+  let aiResponse: string;
+  try {
+    const response = await getAIResponse(userId, organizationId, messages);
+    aiResponse = response.content || "I've analyzed your data. Please try asking a more specific question about your finances, customers, or projects.";
+  } catch (error) {
+    console.error('AI service error:', error);
+    aiResponse = "I'm having trouble connecting to my analysis engine right now. Please try again in a moment.";
+  }
 
   // Save assistant message
   const savedAiMessage = await prisma.aIMessage.create({
