@@ -1,44 +1,58 @@
-# [Project name]
+# Finlytics
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+AI-powered financial operations platform for SMEs — CRM, invoicing, expense tracking, cash flow, projects, employees, AI insights, and reports.
 
 ## Run & Operate
 
+- `pnpm --filter @workspace/finlytics run dev` — run the frontend (Vite, port from $PORT)
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite, Tailwind v4, shadcn/ui (Radix UI), wouter routing
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- DB: PostgreSQL + Drizzle ORM (schema in `.migration-backup/backend/`)
+- State: Zustand, React Query
+- Animation: Framer Motion
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Frontend: `artifacts/finlytics/src/`
+  - Pages: `src/pages/` (LandingPage, LoginPage, RegisterPage, PricingPage, Dashboard, CRM, Finance, Cashflow, Projects, Employees, AI, Reports, Settings, Admin)
+  - Layout shell: `src/components/shell.tsx` (sidebar + header)
+  - UI primitives: `src/components/ui/` (Radix-based shadcn components)
+  - API client: `src/lib/api-client.ts` (uses `VITE_API_URL` env var)
+- API Server: `artifacts/api-server/src/`
+- Original backup: `.migration-backup/` (Next.js frontend + Express/Prisma backend)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Migrated from Next.js to Vite + React — original used `@base-ui/react` UI primitives (newer shadcn variant); replaced all with standard `@radix-ui/*` shadcn components
+- Routing via wouter (replaces Next.js App Router); dashboard routes wrapped in Shell layout in `App.tsx`
+- `SidebarMenuButton` and `SidebarMenuSubButton` support `asChild` via Radix `Slot` so wouter `Link` components render correctly inside sidebar
+- `"use client"` directives from the Next.js source are harmless in Vite (ignored by bundler)
+- API calls fall back to `/api` when `VITE_API_URL` is not set
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Landing page with hero, features, pricing CTA
+- Auth pages: login (GitHub/Google/email), register
+- Pricing page (Free / Professional / Business tiers)
+- Dashboard: KPI cards, revenue chart, upcoming invoices
+- CRM: customers, leads, tasks with search and filtering
+- Finance: invoices, expenses, P&L statements
+- Cash Flow forecasting
+- Projects & Employees management
+- AI Assistant with strategic insights
+- Reports & Settings & Admin Panel
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- All UI components in `src/components/ui/` use `@radix-ui/*` — do NOT copy shadcn components built for `@base-ui/react` (different API)
+- The backend (Prisma schema) has NOT been migrated to Drizzle yet — original schema is in `.migration-backup/backend/prisma/schema.prisma`
 
 ## Pointers
 
